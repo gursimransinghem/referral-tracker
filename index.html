@@ -432,6 +432,60 @@
     border-top: 1px solid var(--border);
     margin-top: 60px;
   }
+
+  .annotated-flow {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin: 24px 0;
+  }
+  @media (min-width: 700px) {
+    .annotated-flow {
+      grid-template-columns: 1fr 300px;
+      gap: 24px;
+    }
+  }
+  .flow-annotations {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 0;
+  }
+  .flow-note {
+    background: var(--surface);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .flow-note strong {
+    color: var(--text);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .flow-note.green { border-left-color: var(--green); }
+  .flow-note.orange { border-left-color: var(--orange); }
+  .flow-note.purple { border-left-color: var(--purple); }
+
+  .example-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 36px 0 24px;
+    color: var(--text-muted);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .example-divider::before, .example-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
 </style>
 </head>
 <body>
@@ -449,7 +503,7 @@
   <h2>Contents</h2>
   <ol>
     <li><a href="#overview">System Overview — How It Works</a></li>
-    <li><a href="#workflow">The Workflow — Real Example, Second by Second</a></li>
+    <li><a href="#workflow">The Workflow — Real Examples, Second by Second</a></li>
     <li><a href="#whatsapp">What Your Team Sees (WhatsApp Messages)</a></li>
     <li><a href="#tiers">The Tier System — Patient Priority</a></li>
     <li><a href="#stale">What "Stale" Means & Why It Matters</a></li>
@@ -468,55 +522,108 @@
 <section id="overview">
   <h2><span class="num">01</span> System Overview</h2>
 
-  <div class="flow-diagram">
-    <pre>
-  Someone texts you a referral (nothing changes for them)
-                    │
-                    ▼
-  ┌─────────────────────────────────────┐
-  │     📱 iPhone Shortcut              │
-  │     Detects keyword or sender       │
-  │     Fires silently in background    │
-  └──────────────┬──────────────────────┘
-                 │
-                 ▼  Sends raw text to cloud
-  ┌─────────────────────────────────────┐
-  │     🧠 Claude AI (in Google Cloud)  │
-  │                                     │
-  │  • Is this a real referral?         │
-  │  • Extract patient details          │
-  │  • Assign priority tier             │
-  │  • Match nearest clinics            │
-  │  • Flag missing info                │
-  │  • Detect insurance                 │
-  └──────────────┬──────────────────────┘
-                 │
-      ┌──────────┼──────────┬───────────┐
-      ▼          ▼          ▼           ▼
-  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
-  │  📊    │ │  💬    │ │  📧    │ │  ↩️    │
-  │ Google │ │  Team  │ │Welcome │ │ Auto-  │
-  │ Sheet  │ │WhatsApp│ │ email  │ │ reply  │
-  │  log   │ │  blast │ │ to pt  │ │ to src │
-  └────────┘ └────────┘ └────────┘ └────────┘
-                 │
-                 ▼
-  ┌─────────────────────────────────────┐
-  │     ⏰ Twice-Daily Heartbeat        │
-  │     9 AM + 4 PM                     │
-  │     Scans for stale referrals       │
-  │     Sends status to team WhatsApp   │
-  └─────────────────────────────────────┘</pre>
+  <div class="annotated-flow">
+    <div class="flow-diagram">
+      <pre>
+  Someone texts you a referral
+  (nothing changes for them)
+                  │
+                  ▼
+  ┌───────────────────────────────┐
+  │  📱 iPhone Shortcut           │
+  │  Triggers on keyword OR       │
+  │  specific sender              │
+  │  Fires silently, instantly    │
+  └────────────┬──────────────────┘
+               │
+               ▼  Raw text → cloud
+  ┌───────────────────────────────┐
+  │  🧠 Claude AI                 │
+  │                               │
+  │  1. Real referral? Looks for  │
+  │     patient-specific details  │
+  │     (name, phone, email...)   │
+  │  2. Extract + restructure     │
+  │     into standardized format  │
+  │  3. Flag missing key details  │
+  │  4. Assign priority tier      │
+  │  5. Match nearest clinics     │
+  │     (by area code or zip)     │
+  │  6. Detect insurance          │
+  └────────────┬──────────────────┘
+               │
+    ┌──────────┼──────────┬────────┐
+    ▼          ▼          ▼        ▼
+┌────────┐┌────────┐┌────────┐┌────────┐
+│  📊   ││  💬   ││  📧   ││  ↩️   │
+│ Google ││ Team  ││Welcome ││ Auto- │
+│ Sheet  ││WhatsApp││ email ││ reply │
+│  log   ││ blast ││ to pt ││to src │
+│        ││       ││(if    ││within │
+│        ││       ││email  ││ 30min │
+│        ││       ││found) ││       │
+└────────┘└────────┘└────────┘└────────┘
+               │
+               ▼
+  ┌───────────────────────────────┐
+  │  ⏰ Twice-Daily Heartbeat     │
+  │  9 AM + 4 PM                  │
+  │  Scans for stale referrals    │
+  │  WhatsApp status to team      │
+  └───────────────────────────────┘</pre>
+    </div>
+    <div class="flow-annotations">
+      <div class="flow-note">
+        <strong>📱 The Trigger</strong><br>
+        Your iPhone Shortcut automation watches for incoming texts matching keywords like "referral," "I got a patient for you," "sending someone your way" — or any text from specific sender contacts you configure. Runs silently in the background. Your referral sources never know it's there.
+      </div>
+      <div class="flow-note green">
+        <strong>🧠 The AI Brain</strong><br>
+        Claude receives the full raw text and asks: is this a real patient referral or just a general conversation about referrals? It looks for patient-specific signals — a phone number, a name, a complaint, an email. If any are found, it flags it as a real referral and the automation continues. It then restructures the messy text into clean, standardized fields.
+      </div>
+      <div class="flow-note orange">
+        <strong>📍 Clinic Matching</strong><br>
+        If a zip code or area code is provided, the AI locates the 2 nearest clinics. If no location info is given, it defaults to showing upcoming available slots at the most common/accessible clinics in your network.
+      </div>
+      <div class="flow-note purple">
+        <strong>⚡ Simultaneous Actions</strong><br>
+        Everything fires at once: Google Sheet gets the structured data, team gets the WhatsApp blast, patient gets a welcome email (if email was included), and the referral source gets a warm, human-sounding thank-you reply within 30 minutes.
+      </div>
+      <div class="flow-note">
+        <strong>⏰ The Safety Net</strong><br>
+        Twice a day (9 AM + 4 PM), the system checks for any referrals that haven't been called within their SLA window and sends an alert to the whole team. Nothing falls through the cracks.
+      </div>
+    </div>
   </div>
 
   <div class="info-card green">
     <strong>The key idea:</strong> From the moment someone texts you a referral to the moment your team member has the patient on the phone with appointment options — zero manual work from you. The system handles parsing, organizing, prioritizing, notifying, and nagging.
   </div>
+
+  <h3>How the iPhone Shortcut Trigger Works</h3>
+  <p>The Shortcut automation lives on your iPhone and fires automatically when you receive a text that matches <strong>either</strong> of these conditions:</p>
+
+  <div class="step-grid">
+    <div class="step-card">
+      <div class="step-num">A</div>
+      <h4>Keyword Match</h4>
+      <p>Any incoming text containing trigger words: <strong>"referral," "I got a patient for you," "sending someone your way," "new patient,"</strong> or other phrases you configure. You can add, remove, or adjust keywords anytime.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">B</div>
+      <h4>Specific Sender</h4>
+      <p>Any text from contacts you've designated as referral sources — regardless of what the message says. If Dr. Ramirez is in your sender list, every text from him gets forwarded to the AI for analysis.</p>
+    </div>
+  </div>
+
+  <p style="color: var(--text-muted); font-size: 14px; margin-top: 12px;">You can use either mode or both at once. The AI handles the second layer of filtering — even if the Shortcut triggers on a casual text from Dr. Ramirez about golf, the AI will recognize it's not a real referral and ignore it. <strong>No false alarms.</strong></p>
 </section>
 
 <!-- SECTION 2: WORKFLOW -->
 <section id="workflow">
-  <h2><span class="num">02</span> The Workflow — Real Example</h2>
+  <h2><span class="num">02</span> The Workflow — Real Examples</h2>
+
+  <div class="example-divider">Example 1 — Detailed Referral</div>
 
   <p>Dr. Ramirez texts you at 2:17 PM on a Tuesday:</p>
 
@@ -531,36 +638,87 @@
     <div class="timeline-item">
       <div class="time-label">Second 1-2 — iPhone</div>
       <h4>📱 Shortcut fires silently</h4>
-      <p>Your phone detects "referral" in the message and sends the raw text to your webhook. You don't see or do anything.</p>
+      <p>Your phone detects "referral" in the message and sends the entire raw text to your Google Apps Script webhook. You don't see or do anything.</p>
     </div>
     <div class="timeline-item">
-      <div class="time-label">Second 3-5 — AI Processing</div>
-      <h4>🧠 Claude analyzes the message</h4>
-      <p><strong>Extracts:</strong> Maria Garcia, (786) 555-1234, maria.garcia@email.com, neck/back pain, cervical strain + lumbar radiculopathy, Car Accident, 33178, Dr. Ramirez</p>
-      <p><strong>Priority:</strong> 🔴 T1 URGENT — recent MVA + attorney + "ASAP"</p>
-      <p><strong>Flags:</strong> Insurance not mentioned</p>
+      <div class="time-label">Second 3-5 — AI Analysis</div>
+      <h4>🧠 Claude reads the full message</h4>
+      <p><strong>Step 1 — Real referral?</strong> Claude scans for patient-specific details. Finds a phone number, name, email, complaint, diagnosis — clearly a real referral. Automation continues.</p>
+      <p><strong>Step 2 — Extract & restructure:</strong> Pulls out all the messy details and organizes into standardized fields: Maria Garcia, (786) 555-1234, maria.garcia@email.com, Car Accident, cervical strain + lumbar radiculopathy, 33178, attorney Smith & Associates.</p>
+      <p><strong>Step 3 — Flag gaps:</strong> Insurance not mentioned — flagged as missing.</p>
+      <p><strong>Step 4 — Priority:</strong> 🔴 T1 URGENT — recent MVA + attorney + "ASAP".</p>
+      <p><strong>Step 5 — Clinics:</strong> Area code 786 + zip 33178 → locates 2 nearest clinics: Doral (2.1 mi), Hialeah (4.8 mi). Pulls available slots in next 48 hours.</p>
     </div>
     <div class="timeline-item">
-      <div class="time-label">Second 5-6 — Logging</div>
-      <h4>📊 Google Sheet updated</h4>
-      <p>New row appears with all extracted fields, checkboxes ready for your team. REF-0042.</p>
+      <div class="time-label">Second 6-7 — Everything fires</div>
+      <h4>📊💬📧 Simultaneous actions</h4>
+      <p><strong>Google Sheet:</strong> New row with all structured data + checkboxes. REF-0042.</p>
+      <p><strong>WhatsApp blast:</strong> Full referral details + nearest clinics + appointment slots → sent to entire team.</p>
+      <p><strong>Welcome email:</strong> Sent to maria.garcia@email.com with practice info, booking link, and what to bring.</p>
     </div>
     <div class="timeline-item">
-      <div class="time-label">Second 6-7 — Clinic Matching</div>
-      <h4>🏥 Nearest clinics + available slots</h4>
-      <p>ZIP 33178 → Doral (2.1 mi), Hialeah (4.8 mi). Checks calendar for openings in next 48 hours.</p>
-    </div>
-    <div class="timeline-item">
-      <div class="time-label">Second 7-8 — Notifications</div>
-      <h4>💬📧↩️ Three things fire at once</h4>
-      <p><strong>A)</strong> WhatsApp to entire team with all details + appointment slots</p>
-      <p><strong>B)</strong> Auto-reply to Dr. Ramirez: "Got it — Maria Garcia is in our system."</p>
-      <p><strong>C)</strong> Welcome email to Maria with practice info + booking link</p>
+      <div class="time-label">Within 30 minutes — Auto-reply</div>
+      <h4>↩️ Thank-you text to Dr. Ramirez</h4>
+      <p>A warm, human-sounding reply goes back to the referral source — not instant (which would feel robotic), but within 30 minutes to feel natural: <em>"Hey Dr. Ramirez — got it, Maria Garcia is in our system. Team will be reaching out to her shortly. Thanks for thinking of us, really appreciate it!"</em></p>
     </div>
   </div>
 
   <div class="info-card">
     <strong>Then your team member calls.</strong> Sarah sees the WhatsApp, opens the sheet, sees Maria is 🔴 Urgent with 3 appointment options. She calls: "Hi Maria, we have openings at our Doral location — Tuesday at 2 PM, Wednesday at 10:30 AM, or Thursday at 3 PM." Maria picks one. Sarah checks two boxes. Done.
+  </div>
+
+  <div class="example-divider">Example 2 — Sparse Referral (Minimal Details)</div>
+
+  <p>A chiropractor you work with texts you at 11:40 AM:</p>
+
+  <div class="whatsapp-mock">
+    <div class="wa-header">Dr. Patel</div>
+    <div class="wa-bubble">hey bro got a patient for you. James Wilson 305-555-6789. car accident, back and knee pain. needs to be seen this week if possible</div>
+  </div>
+
+  <p>Less info this time — no email, no zip code, no diagnosis, no attorney. Here's what the AI does differently:</p>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="time-label">AI Analysis</div>
+      <h4>🧠 Claude works with what it has</h4>
+      <p><strong>Real referral?</strong> Yes — phone number + name + complaint = real patient referral.</p>
+      <p><strong>Extracts:</strong> James Wilson, (305) 555-6789, back and knee pain, Car Accident.</p>
+      <p><strong>Flags missing:</strong> No email, no zip code, no diagnosis, no attorney info, no insurance.</p>
+      <p><strong>Priority:</strong> 🟠 T2 PRIORITY — MVA but no "ASAP"/attorney/ER signals. Recent enough to be warm.</p>
+      <p><strong>Clinics:</strong> No zip code provided, but area code 305 = Miami-Dade. <strong>Defaults to showing all upcoming available slots at the most common/accessible clinics</strong> in the network so the team still has options ready.</p>
+    </div>
+  </div>
+
+  <div class="whatsapp-mock">
+    <div class="wa-header">Referral Tracker → Your Team</div>
+    <div class="wa-bubble">🟠 PRIORITY — NEW REFERRAL (#REF-0043)
+   Call within 4 hours
+
+👤 James Wilson
+📞 (305) 555-6789
+💬 Back and knee pain — car accident
+🏷️ Car Accident
+
+⚠️ Missing: email, zip, diagnosis, insurance
+
+🏥 Clinics (area code 305):
+   1. Doral
+   2. Hialeah
+   3. Kendall
+
+📅 Next available (48h):
+   • Tue 3/18 — 11:00 AM (Doral)
+   • Tue 3/18 — 3:30 PM (Hialeah)
+   • Wed 3/19 — 9:00 AM (Kendall)
+
+📋 Pending calls: 5 (1🔴 2🟠 2🟡)
+
+🔗 Open Call List</div>
+  </div>
+
+  <div class="info-card">
+    <strong>Notice the differences:</strong> No email → no welcome email sent. No zip → clinics default to common locations for the area code. Missing fields are explicitly flagged so the team knows to collect that info on the call. The system works with whatever it gets — a full detailed referral or a quick casual text. Nothing gets lost either way.
   </div>
 </section>
 
@@ -714,6 +872,36 @@
   <div class="info-card orange">
     <strong>Why this matters for pain management:</strong> Recent MVA patients are the highest-value referrals. They need care fast — if your team waits, those patients find another practice or the attorney sends them elsewhere. Attorney involvement always means T1 because that patient is being referred to multiple practices. First to call wins.
   </div>
+
+  <h3>Why Tiering Directly Generates More Revenue</h3>
+
+  <p>Without a tier system, every referral is treated the same. Your team works through them in whatever order they feel like — or worse, picks the easy ones first. The problem: <strong>the referrals worth the most money are the ones most sensitive to time.</strong></p>
+
+  <div class="step-grid">
+    <div class="step-card">
+      <h4>💰 The Math on MVA + Attorney Cases</h4>
+      <p>A single car accident patient with an attorney can generate <strong>$5,000 — $50,000+</strong> in treatment revenue (imaging, injections, physical therapy, follow-ups over 6-18 months). These cases are the financial backbone of a PI-focused pain management practice. But if your team calls 3 hours late, that patient is already booked at the practice down the street.</p>
+    </div>
+    <div class="step-card">
+      <h4>⏱️ The Competitive Window</h4>
+      <p>Attorneys and chiropractors typically refer to <strong>2-3 practices simultaneously</strong>. The first practice that calls, sounds organized, and offers a convenient appointment wins the case. It's not about being the best doctor — it's about being the fastest to respond. A 1-hour SLA on T1 makes you that practice.</p>
+    </div>
+    <div class="step-card">
+      <h4>📊 Revenue per Tier (Typical Ranges)</h4>
+      <p>🔴 <strong>T1 (MVA + Attorney):</strong> $10K-$50K/case<br>
+      🟠 <strong>T2 (MVA, no attorney yet):</strong> $5K-$20K/case<br>
+      🟡 <strong>T3 (Chronic/standard):</strong> $2K-$8K/case<br>
+      Without tiering, your team might call the $3K chronic pain patient first while the $25K MVA+attorney case sits for 4 hours and walks.</p>
+    </div>
+    <div class="step-card">
+      <h4>🔄 The Referral Source Flywheel</h4>
+      <p>Fast response doesn't just win one patient — it wins the <strong>relationship</strong>. An attorney who sends you a patient and sees that you called within 45 minutes, booked same-week, and sent a confirmation? That attorney sends you <strong>every case from now on.</strong> One attorney sending 20 cases/year at $15K average = $300K/year in revenue from a single relationship, protected by a 1-hour SLA.</p>
+    </div>
+  </div>
+
+  <div class="info-card green">
+    <strong>Bottom line:</strong> Tiering isn't just organization — it's a revenue prioritization engine. It ensures your team always works the highest-dollar referrals first, responds within the competitive window that wins cases, and builds the trust with referral sources that keeps the pipeline flowing. One T1 referral saved from going stale pays for this entire system for <strong>years</strong>.
+  </div>
 </section>
 
 <!-- SECTION 5: STALE -->
@@ -798,16 +986,19 @@
 <section id="autoreply">
   <h2><span class="num">07</span> Auto-Reply to Referral Sources</h2>
 
+  <p>Within 30 minutes of processing a referral, the system sends a warm, natural-sounding thank-you back to the person who sent it. The delay is intentional — an instant reply feels robotic, but a reply within half an hour feels like a real person who checked their messages:</p>
+
   <div class="whatsapp-mock">
-    <div class="wa-header">Auto-reply to Dr. Ramirez</div>
-    <div class="wa-bubble">Got it — Maria Garcia is in our system. Our team will reach out to her within the hour. Thanks for the referral, Dr. Ramirez! 🙏</div>
+    <div class="wa-header">Auto-reply to Dr. Ramirez (sent ~25 min later)</div>
+    <div class="wa-bubble">Hey Dr. Ramirez — got it, Maria Garcia is in our system. Team will be reaching out to her shortly. Thanks for thinking of us, really appreciate it! 🙏</div>
   </div>
 
   <p><strong>Why this matters:</strong></p>
   <ul style="margin:12px 0; padding-left: 24px; color: var(--text-muted);">
-    <li style="margin:6px 0;"><strong>Professionalism.</strong> The source knows instantly their referral was received and is being handled.</li>
-    <li style="margin:6px 0;"><strong>Trust = more referrals.</strong> When a referring doctor sees fast, reliable follow-through, they send more patients your way.</li>
-    <li style="margin:6px 0;"><strong>Closes the loop.</strong> Without this, referring doctors wonder if their text went into a void.</li>
+    <li style="margin:6px 0;"><strong>Feels human, not automated.</strong> The 30-minute window and casual tone make it feel like you personally saw the text and responded — not a bot firing back in 0.3 seconds.</li>
+    <li style="margin:6px 0;"><strong>Professionalism.</strong> The source knows their referral was received and is being handled. Most practices never close this loop.</li>
+    <li style="margin:6px 0;"><strong>Trust = more referrals.</strong> When a referring doctor sees fast, reliable follow-through, they send more patients your way. This is a relationship builder.</li>
+    <li style="margin:6px 0;"><strong>Closes the loop.</strong> Without this, referring doctors wonder if their text went into a void. That uncertainty makes them less likely to refer again.</li>
   </ul>
 </section>
 
