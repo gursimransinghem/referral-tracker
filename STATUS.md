@@ -1,6 +1,6 @@
 # Referral Tracker — Project Status
 
-## Current State: v1 Plan Complete ✅
+## Current State: Advanced Version Built ✅
 
 **Live preview:** https://gursimransinghem.github.io/referral-tracker/
 **Repository:** https://github.com/gursimransinghem/referral-tracker
@@ -15,6 +15,7 @@
 - [x] iPhone Shortcut setup guide (3 options: auto, manual, hybrid)
 - [x] Test webhook script (4 test scenarios)
 - [x] Setup guide (SETUP-GUIDE.md — step-by-step for non-developers)
+- [x] Advanced Google Apps Script code (apps-script-advanced.gs — 1,184 lines)
 - [x] 6-expert panel review (Marketing, Patient Relations, CEO, Financial, Office Manager, HIPAA)
 - [x] GitHub Pages live + shareable link working
 - [x] Annotated flow diagram with side-by-side context notes
@@ -75,6 +76,7 @@
 | `index.html` | Live GitHub Pages overview (the shareable link) |
 | `SETUP-GUIDE.md` | Step-by-step setup for non-developers |
 | `apps-script.gs` | Simple Base Google Apps Script (production code) |
+| `apps-script-advanced.gs` | Advanced Google Apps Script (full feature set, 1,184 lines) |
 | `shortcut-steps.md` | iPhone Shortcut detailed setup |
 | `test-webhook.sh` | Curl test commands |
 | `docs/COMPLETE-PLAN.md` | Full markdown version of the plan |
